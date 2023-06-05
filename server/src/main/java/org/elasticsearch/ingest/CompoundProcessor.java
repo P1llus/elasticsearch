@@ -194,6 +194,10 @@ public class CompoundProcessor implements Processor {
         try {
             finalProcessor.execute(ingestDocument, (result, e) -> {
                 long ingestTimeInNanos = relativeTimeProvider.getAsLong() - startTimeInNanos;
+                long endTimeInNanos = relativeTimeProvider.getAsLong();
+                finalIngestDocument.appendFieldValue("_ingest.processorStart", startTimeInNanos, ignoreFailure);
+                finalIngestDocument.appendFieldValue("_ingest.processorDuration", ingestTimeInNanos, ignoreFailure);
+                finalIngestDocument.appendFieldValue("_ingest.processorEnd", endTimeInNanos, ignoreFailure);
                 finalMetric.postIngest(ingestTimeInNanos);
                 if (e != null) {
                     executeOnFailureOuter(finalCurrentProcessor, finalIngestDocument, handler, finalProcessor, finalMetric, e);
