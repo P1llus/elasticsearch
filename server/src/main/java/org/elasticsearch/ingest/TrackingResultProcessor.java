@@ -14,6 +14,7 @@ import org.elasticsearch.core.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static org.elasticsearch.ingest.IngestDocument.PIPELINE_CYCLE_ERROR_MESSAGE;
@@ -139,8 +140,18 @@ public final class TrackingResultProcessor implements Processor {
             });
             return;
         }
-
+        
+        final long startTime = System.nanoTime();
         executeProcessor(actualProcessor, ingestDocument, (result, e) -> {
+            
+            final long endTime = System.nanoTime();
+            final long duration = endTime - startTime;
+
+            Map<String, Object> ingestMeta = ingestDocument.getIngestMetadata();
+            ingestMeta.put("start", startTime);
+            ingestMeta.put("duration", duration);
+            ingestMeta.put("end", endTime);
+
             if (e != null) {
                 if (ignoreFailure) {
                     processorResultList.add(
